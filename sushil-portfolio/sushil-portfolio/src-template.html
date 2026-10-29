@@ -1,0 +1,464 @@
+<title>Sushil Chaurasia Portfolio</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Hanken+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+/* Layout: a fixed WebGL stage (gold pendant + helix of the real artwork) behind scrolling copy; the camera follows scroll through hero, each piece, then the closing pendant. */
+:root{
+  --ink:#0d0a12;
+  --ink-2:#171221;
+  --paper:#efe7d8;
+  --gold:#f2a93b;
+  --mute:#9d92a6;
+  --line:rgba(239,231,216,.18);
+  --display:'Big Shoulders Display',Impact,'Arial Narrow',sans-serif;
+  --body:'Hanken Grotesk',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--ink);color:var(--paper);font-family:var(--body);font-size:1rem;line-height:1.55;overflow-x:hidden}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+
+#gl{position:fixed;inset:0;width:100%;height:100%;display:block;z-index:0}
+.no-gl body{background:radial-gradient(120% 80% at 70% 20%,#2b1d3d 0%,var(--ink) 60%)}
+.no-gl #gl{display:none}
+main{position:relative;z-index:1}
+.in{width:100%;max-width:1240px;margin-inline:auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* nav */
+.nav{position:fixed;top:0;left:0;right:0;z-index:5;background:linear-gradient(to bottom,rgba(13,10,18,.85),rgba(13,10,18,0));padding-top:env(safe-area-inset-top,0px)}
+.nav .in{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding-block:14px}
+.mark{font-family:var(--display);font-weight:800;font-size:1.25rem;letter-spacing:.04em;text-transform:uppercase;text-decoration:none}
+.nav ul{display:flex;gap:1.25rem;list-style:none;margin:0;padding:0}
+.nav a.l{font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;color:var(--paper);opacity:.8}
+.nav a.l:hover{opacity:1;color:var(--gold)}
+
+/* hero */
+.hero{min-height:92vh;min-height:92svh;display:flex;flex-direction:column;justify-content:flex-end}
+.hero .in{display:flex;flex-direction:column;gap:1.15rem;padding-block:7rem 3.25rem;text-shadow:0 2px 28px rgba(13,10,18,.9)}
+.eyebrow{font-family:var(--mono);font-size:.76rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin:0}
+h1{font-family:var(--display);font-weight:900;text-transform:uppercase;line-height:.84;letter-spacing:-.005em;font-size:clamp(3.4rem,14.5vw,10.5rem);margin:0;text-wrap:balance}
+h1 span{display:block}
+.lede{max-width:34rem;font-size:clamp(1rem,2.3vw,1.2rem);margin:0;color:var(--paper)}
+.row{display:flex;flex-wrap:wrap;gap:.75rem 1.25rem;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:.6rem;padding:.8rem 1.25rem;background:var(--gold);color:#1a1205;font-family:var(--mono);font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;text-decoration:none;font-weight:500;text-shadow:none;border:1px solid var(--gold)}
+.btn:hover{background:transparent;color:var(--gold)}
+.btn.ghost{background:rgba(13,10,18,.5);color:var(--paper);border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--gold);color:var(--gold)}
+.avail{display:inline-flex;align-items:center;gap:.55rem;font-family:var(--mono);font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:var(--paper)}
+.avail i{width:8px;height:8px;border-radius:50%;background:#7fe3a0;box-shadow:0 0 0 0 rgba(127,227,160,.6);animation:ping 2.2s infinite}
+@keyframes ping{70%{box-shadow:0 0 0 9px rgba(127,227,160,0)}100%{box-shadow:0 0 0 0 rgba(127,227,160,0)}}
+.scrollcue{font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
+
+/* work: tall scroll track, sticky info panel */
+.work{height:calc(var(--n,17)*72vh + 100vh);height:calc(var(--n,17)*72svh + 100svh)}
+.stick{position:sticky;top:0;height:100vh;height:100svh;display:flex;align-items:flex-end}
+.stick .in{padding-bottom:max(1.25rem,calc(env(safe-area-inset-bottom,0px) + .75rem))}
+.panel{width:min(31rem,100%);padding:1.15rem 1.25rem 1.1rem;background:rgba(13,10,18,.78);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border:1px solid var(--line);display:flex;flex-direction:column;gap:.7rem;min-width:0}
+.panel.swap .sw{animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
+.panel.swap .sw:nth-child(2){animation-delay:.04s}
+.panel.swap .sw:nth-child(3){animation-delay:.08s}
+.panel.swap .sw:nth-child(4){animation-delay:.12s}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.count{font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;color:var(--gold);margin:0}
+.ptitle{font-family:var(--display);font-weight:900;text-transform:uppercase;font-size:clamp(2rem,6.5vw,3.1rem);line-height:.92;margin:0;text-wrap:balance}
+.studio{font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin:0}
+.pdesc{margin:0;font-size:.95rem;color:var(--paper);opacity:.92}
+.tags{display:flex;flex-wrap:wrap;gap:.4rem;list-style:none;margin:0;padding:0}
+.tags li{font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;padding:.28rem .55rem;border:1px solid var(--line);color:var(--paper)}
+.rail{display:flex;gap:4px;margin-top:.15rem}
+.seg{flex:1;height:22px;padding:0;border:0;background:none;cursor:pointer;position:relative}
+.seg::after{content:"";position:absolute;left:0;right:0;top:9px;height:3px;background:var(--line);transition:background .25s,height .25s,top .25s}
+.seg:hover::after{background:var(--mute)}
+.seg[aria-current="true"]::after{background:var(--gold);height:5px;top:8px}
+@media(min-width:900px){
+  .stick{align-items:center}
+  .panel{padding:1.5rem 1.6rem 1.35rem;gap:.85rem}
+  .pdesc{font-size:1rem}
+}
+
+/* about + contact */
+.band{background:linear-gradient(to bottom,rgba(13,10,18,0),rgba(13,10,18,.82) 14rem,rgba(13,10,18,.9))}
+.about .in{padding-block:9rem 4rem;display:grid;gap:3.5rem}
+.quote{font-family:var(--display);font-weight:800;text-transform:uppercase;line-height:.95;font-size:clamp(2rem,6.4vw,4.6rem);margin:0;max-width:18ch;text-wrap:balance}
+.quote em{font-style:normal;color:var(--gold)}
+.cols{display:grid;gap:2.5rem;grid-template-columns:1fr}
+@media(min-width:760px){.cols{grid-template-columns:repeat(3,1fr)}}
+.cols>div{min-width:0}
+.cols h2{font-family:var(--mono);font-weight:500;font-size:.74rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin:0 0 .9rem;padding-bottom:.7rem;border-bottom:1px solid var(--line)}
+.cols ul{list-style:none;margin:0;padding:0;display:grid;gap:.6rem}
+.cols li{font-size:1rem}
+.cols li small{display:block;color:var(--mute);font-size:.82rem}
+.contact .in{padding-block:2rem 3rem;display:flex;flex-direction:column;gap:1.5rem}
+.big{font-family:var(--display);font-weight:900;text-transform:uppercase;font-size:clamp(2.6rem,10vw,7rem);line-height:.88;margin:0;text-wrap:balance}
+footer{border-top:1px solid var(--line);margin-top:1rem;padding-top:1.1rem;display:flex;flex-wrap:wrap;gap:.5rem 1.5rem;justify-content:space-between;font-family:var(--mono);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
+
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .avail i{animation:none}
+  .panel.swap .sw{animation:none}
+}
+</style>
+
+<canvas id="gl" aria-hidden="true"></canvas>
+
+<header class="nav">
+  <div class="in">
+    <a class="mark" href="#top">Sushil Chaurasia</a>
+    <nav aria-label="Sections">
+      <ul>
+        <li><a class="l" href="#work">Work</a></li>
+        <li><a class="l" href="#about">About</a></li>
+        <li><a class="l" href="#contact">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero" aria-label="Introduction">
+    <div class="in">
+      <p class="eyebrow">Graphic &amp; visual designer · Mumbai</p>
+      <h1><span>Sushil</span><span>Chaurasia</span></h1>
+      <p class="lede">Posters, logos, title animation and end credits for series, songs and brands. Plus a 200-page jewellery catalogue.</p>
+      <div class="row">
+        <a class="btn" href="#work">See the work</a>
+        <a class="btn ghost" href="https://www.behance.net/chrssushild1bc" target="_blank" rel="noopener">Behance</a>
+        <span class="avail"><i></i>Available full-time</span>
+      </div>
+      <span class="scrollcue">Scroll to move through the work</span>
+    </div>
+  </section>
+
+  <section class="work" id="work" aria-label="Selected work">
+    <div class="stick">
+      <div class="in">
+        <div class="panel" id="panel">
+          <p class="count sw" id="pCount">01 / 17</p>
+          <h2 class="ptitle sw" id="pTitle">Armaan</h2>
+          <p class="studio sw" id="pStudio">Flock Original</p>
+          <p class="pdesc sw" id="pDesc"></p>
+          <ul class="tags sw" id="pTags"></ul>
+          <div class="rail" id="rail" role="group" aria-label="Choose a piece"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band about" id="about" aria-label="About">
+    <div class="in">
+      <p class="quote">Design is more than looks. It is <em>story</em>, feeling and a moment people remember.</p>
+      <div class="cols">
+        <div>
+          <h2>What I make</h2>
+          <ul>
+            <li>Poster design</li>
+            <li>Logo design</li>
+            <li>Title, end credits and teaser animation</li>
+            <li>Catalogue and cover design</li>
+            <li>Uniform concept decks</li>
+            <li>Illustration and lettering</li>
+            <li>Story building for short films</li>
+          </ul>
+        </div>
+        <div>
+          <h2>Tools</h2>
+          <ul>
+            <li>Adobe Photoshop</li>
+            <li>Adobe Illustrator</li>
+            <li>Adobe After Effects</li>
+            <li>Adobe Premiere Pro</li>
+            <li>Blender</li>
+            <li>CorelDraw</li>
+          </ul>
+        </div>
+        <div>
+          <h2>Also in the portfolio</h2>
+          <ul>
+            <li>Dreams Tea Aur Hum, Khwahishon Ka Scooter<small>Flock Entertainment series posters</small></li>
+            <li>Humara Movies<small>One and Only, Dark Plants, Choice</small></li>
+            <li>Gold Di Chain, Khud Ka Pata<small>Poster, title and end credits animation</small></li>
+            <li>Bas Ab Bahut Ho Gaya<small>Short film, third place at the 2017 Population Foundation of India contest</small></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band contact" id="contact" aria-label="Contact">
+    <div class="in">
+      <h2 class="big">Have a poster, logo or catalogue in mind?</h2>
+      <div class="row">
+        <a class="btn" href="https://sites.google.com/view/sushilportfolio/portfolio" target="_blank" rel="noopener">Full portfolio</a>
+        <a class="btn ghost" href="https://www.behance.net/chrssushild1bc" target="_blank" rel="noopener">Behance profile</a>
+      </div>
+      <footer>
+        <span>Sushil Chaurasia</span>
+        <span>Mumbai, India</span>
+        <span>Available full-time</span>
+      </footer>
+    </div>
+  </section>
+</main>
+
+<script>
+(function(){
+'use strict';
+var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- artwork (embedded) ---------- */
+var ASSETS=__ASSETS__;
+
+/* ---------- content ---------- */
+var PROJECTS=[
+ {key:'armaan',n:'Armaan',studio:'Flock Original',d:'Key art for the Flock Original series Armaan: the cast gathered in green smoke around the police officer at its centre.',tags:['Poster design','Key art']},
+ {key:'armaan_cast',n:'Armaan Cast',studio:'Flock Original',d:'Landscape cast poster: six leads in gold-trimmed panels against flames.',tags:['Poster design','Landscape']},
+ {key:'armaan_case',n:'Armaan Case File',studio:'Flock Original',d:'A crime-scene take on the poster, with police tape, blood spatter and the cast in gold-toned frames.',tags:['Poster design','Concept']},
+ {key:'armaan_soon',n:'Armaan Coming Soon',studio:'Flock Original',d:'The poster hung in a gold frame inside a stone archway, lit by blue-flame torches.',tags:['3D scene','Poster reveal']},
+ {key:'teaser',n:'Armaan: 1 Day To Go',studio:'Flock Original',d:'Countdown teaser with a gold 3D "1 Day To Go" title over location footage. It plays when you reach it.',tags:['Title animation','Countdown teaser']},
+ {key:'prank',n:'Prank Call',studio:'Flock Originals',d:'Coming-soon poster for the Flock Originals series Prank Call, featuring Mayur More as Pratik.',tags:['Poster design','Flock Originals']},
+ {key:'trapkaal',n:'TrapKaal',studio:'Trap + Mantras',d:'Logo for TrapKaal: a gold brush wordmark under a Buddha wearing headphones, ringed by mantra script.',tags:['Logo design','Brand mark']},
+ {key:'jnd',n:'JND Edition 3',studio:'Jewel N Design',d:'Cover wrap for the third edition of the Jewel N Design catalogue, a 200-page book designed end to end.',tags:['Catalogue design','Cover design']},
+ {key:'amz_women',n:'Amazonia Women\u2019s Day',studio:'Amazonia',d:'Event poster for 8 March at BKC: two profiles, one in flowers and one in forest, under the line Celebrating Both Energies.',tags:['Event poster','Social media']},
+ {key:'am_service',n:'Amazonia Service Area',studio:'Uniform concept deck',d:'Uniform concepts for the service team, from restaurant manager to assistant steward.',tags:['Concept deck','Uniform design']},
+ {key:'am_bar',n:'Amazonia Bar',studio:'Uniform concept deck',d:'Uniform concepts for the bar team: bar manager, supervisor, bartender, assistant bartender and bar back.',tags:['Concept deck','Uniform design']},
+ {key:'am_desk',n:'Amazonia Desk',studio:'Uniform concept deck',d:'Uniform concepts for guest relations managers and executives, and the hostess.',tags:['Concept deck','Uniform design']},
+ {key:'am_house',n:'Amazonia Housekeeping',studio:'Uniform concept deck',d:'Uniform concepts for the housekeeping supervisor and staff, in forest green and linen.',tags:['Concept deck','Uniform design']},
+ {key:'komal',n:'Komal Arts',studio:'Logo',d:'Monogram logo for Komal Arts: a serif K and A joined by a leaf and swirl flourish.',tags:['Logo design','Monogram']},
+ {key:'flash',n:'The Flash',studio:'Illustration',d:'Flat-colour vector portrait of The Flash in profile.',tags:['Vector illustration']},
+ {key:'hulk',n:'Hulk in Words',studio:'Typographic portrait',d:'A portrait of the Hulk built entirely from words and phrases.',tags:['Typography','Illustration']},
+ {key:'joker',n:'Why So Serious',studio:'Digital illustration',d:'A Joker portrait set against a stormy sky, with hand-lettered red type arcing overhead.',tags:['Digital illustration','Lettering']}
+];
+var N=PROJECTS.length;
+
+/* ---------- helpers ---------- */
+function $(id){return document.getElementById(id)}
+function pad(n){return (n<10?'0':'')+n}
+function clamp(v,a,b){return Math.min(b,Math.max(a,v))}
+function smooth(t){return t*t*(3-2*t)}
+function lerp(a,b,t){return a+(b-a)*t}
+
+/* ---------- DOM: panel + rail + scroll metrics ---------- */
+var work=$('work');work.style.setProperty('--n',N);
+var rail=$('rail'),panel=$('panel'),pCount=$('pCount'),pTitle=$('pTitle'),pStudio=$('pStudio'),pDesc=$('pDesc'),pTags=$('pTags');
+var workTop=0,workRange=1;
+function measure(){
+  var r=work.getBoundingClientRect();
+  workTop=r.top+window.scrollY;
+  workRange=Math.max(1,work.offsetHeight-window.innerHeight);
+}
+PROJECTS.forEach(function(p,i){
+  var b=document.createElement('button');
+  b.type='button';b.className='seg';b.setAttribute('aria-label','Go to '+p.n);
+  b.addEventListener('click',function(){
+    window.scrollTo({top:workTop+(i/(N-1))*workRange,behavior:reduce?'auto':'smooth'});
+  });
+  rail.appendChild(b);
+});
+var segs=rail.children,shown=-1;
+function setIdx(i){
+  if(i===shown)return;
+  var first=shown===-1;shown=i;
+  var p=PROJECTS[i];
+  pCount.textContent=pad(i+1)+' / '+pad(N);
+  pTitle.textContent=p.n;pStudio.textContent=p.studio;pDesc.textContent=p.d;
+  pTags.innerHTML='';
+  p.tags.forEach(function(t){var li=document.createElement('li');li.textContent=t;pTags.appendChild(li)});
+  for(var k=0;k<segs.length;k++){if(k===i)segs[k].setAttribute('aria-current','true');else segs[k].removeAttribute('aria-current')}
+  if(!first&&!reduce){panel.classList.remove('swap');void panel.offsetWidth;panel.classList.add('swap')}
+}
+function onScroll(){
+  var wp=clamp((window.scrollY-workTop)/workRange,0,1);
+  setIdx(Math.round(wp*(N-1)));
+}
+window.addEventListener('scroll',onScroll,{passive:true});
+window.addEventListener('resize',function(){measure();onScroll()});
+window.addEventListener('load',function(){measure();onScroll()});
+if(document.fonts&&document.fonts.ready){document.fonts.ready.then(function(){measure();onScroll()})}
+measure();setIdx(0);onScroll();
+
+/* ---------- WebGL ---------- */
+var canvas=$('gl'),renderer=null;
+try{if(window.THREE){renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:true,powerPreference:'high-performance'})}}catch(e){renderer=null}
+if(!renderer){document.documentElement.classList.add('no-gl');return}
+
+renderer.outputEncoding=THREE.sRGBEncoding;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.05;
+renderer.setClearColor(0x0d0a12,1);
+
+var scene=new THREE.Scene();
+scene.fog=new THREE.FogExp2(0x0d0a12,0.028);
+var camera=new THREE.PerspectiveCamera(45,1,0.1,200);
+
+/* environment: a tiny studio of emissive cards, baked once into a cube map for the gold */
+function makeEnv(){
+  var s=new THREE.Scene();
+  var g=new THREE.SphereGeometry(60,32,16),cols=[],pos=g.attributes.position;
+  var top=new THREE.Color(0x3a2a52),bot=new THREE.Color(0x0a0710),c=new THREE.Color();
+  for(var i=0;i<pos.count;i++){c.copy(bot).lerp(top,(pos.getY(i)/60+1)/2);cols.push(c.r,c.g,c.b)}
+  g.setAttribute('color',new THREE.Float32BufferAttribute(cols,3));
+  s.add(new THREE.Mesh(g,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.BackSide})));
+  function card(w,h,color,x,y,z){
+    var m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({color:color,side:THREE.DoubleSide}));
+    m.position.set(x,y,z);m.lookAt(0,0,0);s.add(m);
+  }
+  card(34,7,0xffe0b0,0,22,10);
+  card(10,26,0xfff3dc,-32,4,0);
+  card(12,16,0xff9a4a,32,-2,12);
+  card(44,4,0x8070e0,0,-20,-20);
+  card(16,16,0xffffff,0,6,-36);
+  card(8,20,0xffc880,18,2,-28);
+  var rt=new THREE.WebGLCubeRenderTarget(256,{generateMipmaps:true,minFilter:THREE.LinearMipmapLinearFilter});
+  var cc=new THREE.CubeCamera(0.1,200,rt);
+  cc.update(renderer,s);
+  return rt.texture;
+}
+var env=makeEnv();
+var gold=new THREE.MeshStandardMaterial({color:0xf2b04a,metalness:1,roughness:0.2,envMap:env,envMapIntensity:1.35});
+
+scene.add(new THREE.AmbientLight(0xffffff,0.25));
+var key=new THREE.DirectionalLight(0xffe2b8,0.9);key.position.set(6,10,8);scene.add(key);
+var pl=new THREE.PointLight(0xffb866,1.1,40);scene.add(pl);
+
+/* pendant: gem + halo + chain */
+var pend=new THREE.Group();scene.add(pend);
+var gem=new THREE.Mesh(new THREE.OctahedronGeometry(1.15,0),new THREE.MeshStandardMaterial({color:0xf6b955,metalness:1,roughness:0.12,envMap:env,envMapIntensity:1.6,flatShading:true}));
+gem.scale.set(1,1.45,1);gem.position.y=2.9;pend.add(gem);
+var halo=new THREE.Mesh(new THREE.TorusGeometry(2.1,0.014,8,160),new THREE.MeshBasicMaterial({color:0xf2a93b,transparent:true,opacity:0.7}));
+halo.position.y=2.9;halo.rotation.x=Math.PI/2.25;pend.add(halo);
+var halo2=new THREE.Mesh(new THREE.TorusGeometry(2.6,0.008,8,160),new THREE.MeshBasicMaterial({color:0xefe7d8,transparent:true,opacity:0.35}));
+halo2.position.y=2.9;halo2.rotation.x=Math.PI/1.9;halo2.rotation.y=0.5;pend.add(halo2);
+var linkGeo=new THREE.TorusGeometry(0.34,0.085,16,40),links=[];
+for(var k=0;k<24;k++){
+  var L=new THREE.Mesh(linkGeo,gold);
+  L.scale.set(1,1.5,1);L.position.y=1.2-k*0.62;L.rotation.y=(k%2)*Math.PI/2;
+  pend.add(L);links.push(L);
+}
+
+/* artwork helix: each piece keeps its own proportions inside a 4.4 x 3.4 box */
+var R=7,STEP=0.82,YS=0.75,PWMAX=4.4,PHMAX=3.4;
+var posters=[],aniso=renderer.capabilities.getMaxAnisotropy(),loader=new THREE.TextureLoader();
+PROJECTS.forEach(function(p,i){
+  var a=ASSETS[p.key],asp=a.w/a.h;
+  var pw=Math.min(PWMAX,PHMAX*asp),ph=pw/asp;
+  var mat=new THREE.MeshBasicMaterial({color:0x2a2330,toneMapped:false});
+  var mesh=new THREE.Mesh(new THREE.PlaneGeometry(pw,ph),mat);
+  var frame=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.PlaneGeometry(pw+0.1,ph+0.1)),new THREE.LineBasicMaterial({color:0xf2a93b,transparent:true,opacity:.4}));
+  frame.position.z=.01;
+  var grp=new THREE.Group();grp.add(mesh);grp.add(frame);
+  var ang=i*STEP,px=R*Math.cos(ang),pz=R*Math.sin(ang),py=-i*YS;
+  grp.position.set(px,py,pz);
+  grp.lookAt(px*2,py,pz*2);
+  scene.add(grp);
+  var q={grp:grp,frame:frame,base:py,mat:mat,vid:null,still:null,vtex:null};
+  posters.push(q);
+  loader.load(a.src,function(tex){
+    tex.encoding=THREE.sRGBEncoding;tex.anisotropy=aniso;
+    q.still=tex;mat.map=tex;mat.color.set(0xffffff);mat.needsUpdate=true;
+  });
+  /* a piece with a video shows its still frame, then plays when the camera reaches it */
+  if(a.video&&!reduce){
+    var v=document.createElement('video');
+    v.muted=true;v.loop=true;v.playsInline=true;v.preload='auto';
+    v.setAttribute('playsinline','');v.setAttribute('muted','');
+    v.addEventListener('playing',function(){
+      if(!q.vtex){q.vtex=new THREE.VideoTexture(v);q.vtex.encoding=THREE.sRGBEncoding;q.vtex.minFilter=THREE.LinearFilter;q.vtex.magFilter=THREE.LinearFilter;q.vtex.generateMipmaps=false}
+      mat.map=q.vtex;mat.needsUpdate=true;
+    });
+    v.addEventListener('pause',function(){if(q.still){mat.map=q.still;mat.needsUpdate=true}});
+    v.src=a.video;q.vid=v;
+  }
+});
+
+/* gold dust */
+var DN=reduce?350:800,dpos=new Float32Array(DN*3);
+for(var d=0;d<DN;d++){
+  var ang2=Math.random()*Math.PI*2,rad=3+Math.random()*16;
+  dpos[d*3]=Math.cos(ang2)*rad;dpos[d*3+1]=-17+Math.random()*26;dpos[d*3+2]=Math.sin(ang2)*rad;
+}
+var dg=new THREE.BufferGeometry();dg.setAttribute('position',new THREE.BufferAttribute(dpos,3));
+var dust=new THREE.Points(dg,new THREE.PointsMaterial({color:0xf2b04a,size:0.06,transparent:true,opacity:.65,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));
+scene.add(dust);
+
+/* size */
+var W=1,H=1;
+function resize(){
+  W=window.innerWidth;H=window.innerHeight;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,W<700?1.75:2));
+  renderer.setSize(W,H,false);
+  camera.aspect=W/H;camera.updateProjectionMatrix();
+  measure();
+}
+window.addEventListener('resize',resize);resize();
+
+/* pointer parallax */
+var tpx=0,tpy=0,px=0,py=0;
+window.addEventListener('pointermove',function(e){tpx=e.clientX/W*2-1;tpy=e.clientY/H*2-1},{passive:true});
+
+/* camera pose: [angle, radius, y, lookAngle, lookRadius, lookY] in cylindrical coordinates */
+var cur=null,vx=0,vy=0,t=0,idxVis=0;
+function target(){
+  var sy=window.scrollY,vh=window.innerHeight,asp=camera.aspect;
+  var wp=(sy-workTop)/workRange,idx=clamp(wp,0,1)*(N-1);
+  var b1=smooth(clamp((sy-(workTop-vh*0.95))/(vh*0.95),0,1));
+  var b2=smooth(clamp((sy-(workTop+workRange))/(vh*0.9),0,1));
+  var heroR=asp<1?22+(1-asp)*14:22;
+  var dist=Math.max(6.2,4.9/(0.828*asp));
+  var endR=Math.max(9,5/(0.828*asp));
+  var hero=[-0.55+(reduce?0:Math.sin(t*0.12)*0.12),heroR,0.4,0,0,-4.2];
+  var a=idx*STEP,yy=-idx*YS;
+  var focus=[a,R+dist,yy+0.15,a,R,yy];
+  var end=[(N-1)*STEP+0.9,endR,3.6,0,0,2.7];
+  var o=[];
+  for(var k=0;k<6;k++)o[k]=lerp(lerp(hero[k],focus[k],b1),end[k],b2);
+  return {pose:o,w:b1*(1-b2),idx:idx};
+}
+
+var last=performance.now();
+function frame(now){
+  requestAnimationFrame(frame);
+  if(document.hidden)return;
+  var dt=Math.min(0.05,(now-last)/1000);last=now;t+=dt;
+  var tg=target();
+  if(!cur)cur=tg.pose.slice();
+  var kd=1-Math.exp(-dt*(reduce?9:3.6));
+  for(var k=0;k<6;k++)cur[k]+=(tg.pose[k]-cur[k])*kd;
+  idxVis+=(tg.idx-idxVis)*kd;
+
+  px+=(tpx-px)*Math.min(1,dt*3);py+=(tpy-py)*Math.min(1,dt*3);
+  camera.position.set(Math.cos(cur[0])*cur[1],cur[2],Math.sin(cur[0])*cur[1]);
+  camera.lookAt(Math.cos(cur[3])*cur[4],cur[5],Math.sin(cur[3])*cur[4]);
+  if(!reduce){camera.translateX(px*0.45);camera.translateY(-py*0.28)}
+
+  /* shift the stage so the subject sits beside (wide) or above (tall) the text panel */
+  var wide=camera.aspect>1.1;
+  var tvx=wide?-(0.08+0.1*tg.w):0,tvy=wide?0:(0.1+0.07*tg.w);
+  vx+=(tvx-vx)*kd;vy+=(tvy-vy)*kd;
+  camera.setViewOffset(W,H,vx*W,vy*H,W,H);
+
+  pl.position.copy(camera.position);
+
+  for(var i=0;i<posters.length;i++){
+    var q=posters[i],dd=i-idxVis,hi=Math.exp(-dd*dd*2)*tg.w;
+    q.frame.material.opacity=0.32+0.68*hi;
+    var sc=1+0.05*hi;q.grp.scale.set(sc,sc,1);
+    if(!reduce)q.grp.position.y=q.base+Math.sin(t*0.8+i*1.3)*0.06;
+    if(q.vid){
+      if(hi>0.45&&q.vid.paused){var pr=q.vid.play();if(pr&&pr.catch)pr.catch(function(){})}
+      else if(hi<=0.45&&!q.vid.paused){q.vid.pause()}
+    }
+  }
+  gem.rotation.y+=dt*0.6;
+  halo.rotation.z+=dt*0.25;halo2.rotation.z-=dt*0.18;
+  if(!reduce){pend.rotation.z=Math.sin(t*0.5)*0.015;dust.rotation.y+=dt*0.02}
+  for(var j=0;j<links.length;j++){links[j].rotation.y=(j%2)*Math.PI/2+(reduce?0:Math.sin(t*0.7+j*0.4)*0.12)}
+
+  renderer.render(scene,camera);
+}
+requestAnimationFrame(frame);
+})();
+</script>
