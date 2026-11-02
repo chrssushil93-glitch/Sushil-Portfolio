@@ -94,6 +94,22 @@ h1 span{display:block}
 .cols li small{display:block;color:var(--mute);font-size:.82rem}
 .contact .in{padding-block:2rem 3rem;display:flex;flex-direction:column;gap:1.5rem}
 .big{font-family:var(--display);font-weight:900;text-transform:uppercase;font-size:clamp(2.6rem,10vw,7rem);line-height:.88;margin:0;text-wrap:balance}
+.wa{display:grid;gap:1.25rem;max-width:40rem}
+.wa p{margin:0;color:var(--paper);opacity:.9}
+.field{display:grid;gap:.35rem;min-width:0}
+.field label{font-family:var(--mono);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+.field input,.field select,.field textarea{width:100%;font:inherit;font-size:1rem;color:var(--paper);background:rgba(13,10,18,.7);border:1px solid var(--line);border-radius:0;padding:.75rem .85rem;min-width:0}
+.field textarea{min-height:6rem;resize:vertical}
+.field input:focus,.field select:focus,.field textarea:focus{outline:2px solid var(--gold);outline-offset:1px;border-color:var(--gold)}
+.field select option{background:var(--ink-2);color:var(--paper)}
+.two{display:grid;gap:1.25rem;grid-template-columns:1fr}
+@media(min-width:560px){.two{grid-template-columns:1fr 1fr}}
+.btn.wa-btn{background:#25d366;border-color:#25d366;color:#04200f}
+.btn.wa-btn:hover{background:transparent;color:#25d366}
+.num{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem 1rem;font-family:var(--mono);font-size:.9rem;letter-spacing:.06em}
+.copy{font-family:var(--mono);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;background:none;color:var(--gold);border:1px solid var(--line);padding:.35rem .7rem;cursor:pointer}
+.copy:hover{border-color:var(--gold)}
+.note{font-size:.82rem;color:var(--mute)}
 footer{border-top:1px solid var(--line);margin-top:1rem;padding-top:1.1rem;display:flex;flex-wrap:wrap;gap:.5rem 1.5rem;justify-content:space-between;font-family:var(--mono);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
 
 @media (prefers-reduced-motion:reduce){
@@ -127,6 +143,7 @@ footer{border-top:1px solid var(--line);margin-top:1rem;padding-top:1.1rem;displ
       <div class="row">
         <a class="btn" href="#work">See the work</a>
         <a class="btn ghost" href="https://www.behance.net/chrssushild1bc" target="_blank" rel="noopener">Behance</a>
+        <a class="btn ghost wa-link" href="#contact">WhatsApp</a>
         <span class="avail"><i></i>Available full-time</span>
       </div>
       <span class="scrollcue">Scroll to move through the work</span>
@@ -191,9 +208,29 @@ footer{border-top:1px solid var(--line);margin-top:1rem;padding-top:1.1rem;displ
   <section class="band contact" id="contact" aria-label="Contact">
     <div class="in">
       <h2 class="big">Have a poster, logo or catalogue in mind?</h2>
-      <div class="row">
-        <a class="btn" href="https://sites.google.com/view/sushilportfolio/portfolio" target="_blank" rel="noopener">Full portfolio</a>
-        <a class="btn ghost" href="https://www.behance.net/chrssushild1bc" target="_blank" rel="noopener">Behance profile</a>
+      <div class="wa">
+        <p>Tell me a little about it and send it straight to my WhatsApp. Your message is written for you, so you only tap send.</p>
+        <div class="two">
+          <div class="field"><label for="waName">Your name</label><input id="waName" type="text" autocomplete="name" placeholder="Your name"></div>
+          <div class="field"><label for="waType">What do you need?</label>
+            <select id="waType">
+              <option>Poster design</option>
+              <option>Logo design</option>
+              <option>Title or end credits animation</option>
+              <option>Catalogue or cover design</option>
+              <option>Full-time role</option>
+              <option>Something else</option>
+            </select>
+          </div>
+        </div>
+        <div class="field"><label for="waMsg">Details (optional)</label><textarea id="waMsg" placeholder="What is it for, and when do you need it?"></textarea></div>
+        <div class="row">
+          <a class="btn wa-btn" id="waGo" href="https://wa.me/918291920404" target="_blank" rel="noopener">Message on WhatsApp</a>
+          <a class="btn ghost" href="https://sites.google.com/view/sushilportfolio/portfolio" target="_blank" rel="noopener">Full portfolio</a>
+          <a class="btn ghost" href="https://www.behance.net/chrssushild1bc" target="_blank" rel="noopener">Behance</a>
+        </div>
+        <div class="num"><span id="waNum">+91 82919 20404</span><button class="copy" id="waCopy" type="button">Copy number</button></div>
+        <p class="note" id="waNote">WhatsApp opens with your message ready. If it does not open, copy the number and message me directly.</p>
       </div>
       <footer>
         <span>Sushil Chaurasia</span>
@@ -279,6 +316,27 @@ window.addEventListener('resize',function(){measure();onScroll()});
 window.addEventListener('load',function(){measure();onScroll()});
 if(document.fonts&&document.fonts.ready){document.fonts.ready.then(function(){measure();onScroll()})}
 measure();setIdx(0);onScroll();
+
+/* ---------- WhatsApp contact ---------- */
+(function(){
+  var NUM='918291920404';
+  var go=$('waGo'),nm=$('waName'),ty=$('waType'),ms=$('waMsg');
+  function build(){
+    var name=nm.value.trim(),type=ty.value,det=ms.value.trim();
+    var m='Hi Sushil, I came across your portfolio'+(name?', I am '+name:'')+'.\n\nI would like to talk about: '+type+'.';
+    if(det)m+='\n\nDetails: '+det;
+    m+='\n\nWhen can we talk?';
+    go.href='https://wa.me/'+NUM+'?text='+encodeURIComponent(m);
+  }
+  [nm,ty,ms].forEach(function(el){el.addEventListener('input',build);el.addEventListener('change',build)});
+  build();
+  $('waCopy').addEventListener('click',function(){
+    var b=this,txt='+91 8291920404';
+    function done(ok){b.textContent=ok?'Copied':'Select the number';setTimeout(function(){b.textContent='Copy number'},1800)}
+    try{navigator.clipboard.writeText(txt).then(function(){done(true)},function(){sel();done(false)})}catch(e){sel();done(false)}
+    function sel(){var r=document.createRange();r.selectNodeContents($('waNum'));var s=window.getSelection();s.removeAllRanges();s.addRange(r)}
+  });
+})();
 
 /* ---------- WebGL ---------- */
 var canvas=$('gl'),renderer=null;
