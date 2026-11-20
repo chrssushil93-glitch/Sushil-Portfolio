@@ -1,0 +1,11 @@
+CREATE TABLE IF NOT EXISTS admins(id serial PRIMARY KEY, email text UNIQUE NOT NULL, password_hash text NOT NULL, created_at timestamptz DEFAULT now());
+CREATE TABLE IF NOT EXISTS projects(id serial PRIMARY KEY, slug text UNIQUE NOT NULL, title text NOT NULL, studio text DEFAULT '', description text DEFAULT '', tags text[] DEFAULT '{}', image_url text NOT NULL, image_w int DEFAULT 1000, image_h int DEFAULT 1000, video_url text, sort_order int DEFAULT 0, visible boolean DEFAULT true, created_at timestamptz DEFAULT now(), updated_at timestamptz DEFAULT now());
+CREATE TABLE IF NOT EXISTS settings(key text PRIMARY KEY, value jsonb NOT NULL);
+CREATE TABLE IF NOT EXISTS enquiries(id serial PRIMARY KEY, name text, need text, details text, ip_hash text, status text DEFAULT 'new', created_at timestamptz DEFAULT now());
+CREATE INDEX IF NOT EXISTS enquiries_created ON enquiries(created_at DESC);
+CREATE TABLE IF NOT EXISTS events(id bigserial PRIMARY KEY, type text NOT NULL, path text, project text, country text, device text, referrer text, created_at timestamptz DEFAULT now());
+CREATE INDEX IF NOT EXISTS events_created ON events(created_at);
+CREATE INDEX IF NOT EXISTS events_type_created ON events(type, created_at);
+CREATE TABLE IF NOT EXISTS media(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), mime text NOT NULL, data bytea NOT NULL, w int, h int, created_at timestamptz DEFAULT now());
+CREATE TABLE IF NOT EXISTS login_attempts(id bigserial PRIMARY KEY, ip_hash text NOT NULL, created_at timestamptz DEFAULT now());
+CREATE INDEX IF NOT EXISTS login_attempts_ip ON login_attempts(ip_hash, created_at);
